@@ -13,10 +13,8 @@ const startFight = async (user, challengedUser) => {
     const cooldownHour = user.fightCooldown;
 
     if (cooldownHour <= now) {
-        const winRates = calculateUsersWinRate(user, challengedUser);
-        const winner = decideWinner(winRates);
-
-        console.log(winRates)
+        const winRates = calculateUsersWinRate(user, challengedUser)
+        const winner = decideWinner(winRates)
 
         let winResult = {};
 
