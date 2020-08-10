@@ -45,5 +45,5 @@ const calculateCooldown = (currentTime, cooldownTime) => {
 }
 
 module.exports = {
-    calculateCooldown: calculateCooldown,
+    calculateCooldown,
 }

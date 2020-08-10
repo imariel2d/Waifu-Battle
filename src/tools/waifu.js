@@ -1,7 +1,5 @@
 const Discord = require('discord.js');
-
 const mongoose = require('mongoose');
-const fs = require('fs');
 
 const waifuNamesModel = {
     name: String,
@@ -31,29 +29,28 @@ const Waifu = function () {
     this.health = Math.floor(Math.random() * (maxStat - minStat) + minStat)
 }
 
-const createWaifu = () => {
-    const waifu = new Waifu();
-    return waifu;
-}
+const createWaifu = async () => {
 
-const getRandomWaifuName = (waifu, callback) => {
+    try {
+        const waifuNames = await WaifuNamesModel.find({})
+        const waifuLastNames = await WaifuLastNamesModel.find({})
 
-    WaifuNamesModel.find({}, (err, names) => {
+        const positionName = Math.floor(Math.random() * waifuNames.length);
+        const randomName = waifuNames[positionName];
 
-        const positionName = Math.floor(Math.random() * names.length);
-        const randomName = names[positionName];
+        const positionLastName = Math.floor(Math.random() * waifuLastNames.length);
+        const randomLastName = waifuLastNames[positionLastName];
+
+        const waifu = new Waifu()
 
         waifu.name = randomName.name;
+        waifu.lastName = randomLastName.lastName;
 
-        WaifuLastNamesModel.find({}, (err, lastNames) => {
+        return waifu
 
-            const positionLastName = Math.floor(Math.random() * lastNames.length);
-            const randomLastName = lastNames[positionLastName];
-
-            waifu.lastName = randomLastName.lastName;
-            callback(waifu);
-        })
-    });
+    } catch (e) {
+        console.log(e)
+    }
 }
 
 const increaseWaifuStats = (waifu) => {
@@ -64,53 +61,30 @@ const increaseWaifuStats = (waifu) => {
 
     if (randomOption >= 1 && randomOption <= 3) {
         waifu.attack = waifu.attack + attackBuff;
-        statMessage = "`+"+(attackBuff)+" Attack`"
+        statMessage = "`+" + (attackBuff) + " Attack`"
     }
 
     else if (randomOption >= 4 && randomOption <= 6) {
         waifu.defense = waifu.defense + defenseBuff;
-        statMessage = "`+"+(defenseBuff)+" Defense`"
+        statMessage = "`+" + (defenseBuff) + " Defense`"
     }
 
     else {
         waifu.health = waifu.health + healthkBuff;
-        statMessage = "`+"+(healthkBuff)+" Health`"
+        statMessage = "`+" + (healthkBuff) + " Health`"
     }
 
     messageResponse = "Your waifu is now " + statMessage + " stronger"
 
     const waifuReponse = {
         waifu: waifu,
-        messageResponse: messageResponse,
+        message: messageResponse,
     }
-
 
     return waifuReponse;
 }
 
-const getWaifuInformation = (user) => {
-
-    const waifu = user.waifu;
-
-    const embedInfo = new Discord.RichEmbed()
-        .setTitle(user.username + "'s waifu")
-        .setColor('#DF77EC')    
-        .addField('Waifu Name', `${waifu.name} ${waifu.lastName}`)
-        .addField('Attack', waifu.attack)
-        .addField('Defense', waifu.defense)
-        .addField('Health', waifu.health)
-        .addField('Combats won', user.combatsWon)
-
-    const embedWaifu = {
-        embedInfo: embedInfo,
-    }
-
-    return embedWaifu;
-}
-
 module.exports = {
-    createWaifu: createWaifu,
-    increaseWaifuStats: increaseWaifuStats,
-    getWaifuInformation: getWaifuInformation,
-    getRandomWaifuName: getRandomWaifuName
+    createWaifu,
+    increaseWaifuStats,
 };

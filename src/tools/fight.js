@@ -7,12 +7,7 @@ const attackPoints = 1;
 const defensePoints = 0.5;
 const healthPoints = 0.3;
 
-//Constructor
-const Fight = function (user, challengedUser) {
-
-}
-
-const startFight = (user, challengedUser) => {
+const startFight = async (user, challengedUser) => {
 
     const now = new Date();
     const cooldownHour = user.fightCooldown;
@@ -21,18 +16,20 @@ const startFight = (user, challengedUser) => {
         const winRates = calculateUsersWinRate(user, challengedUser);
         const winner = decideWinner(winRates);
 
+        console.log(winRates)
+
         let winResult = {};
 
         //If the person who sent the fight request lost...
-        if (user.at !== winner.user.at) {
+        if (user.discordId !== winner.discordId) {
 
             winResult = new Discord.RichEmbed()
                 .setTitle('Match result')
                 .setColor('#F12C2C')
-                .addField('Winner', winner.user.username + '#' + winner.user.discriminator)
+                .addField('Winner', winner.username + '#' + winner.discriminator)
 
-            //ARREGLAR LAS HORAS AQUI.
-            const newFightCooldown = now.setMinutes(now.getMinutes() + 15);
+            //Set up time here
+            const newFightCooldown = now.setMinutes(now.getMinutes() + 30)
             user.fightCooldown = newFightCooldown;
 
         } else {
@@ -40,21 +37,20 @@ const startFight = (user, challengedUser) => {
             winResult = new Discord.RichEmbed()
                 .setTitle('Match result')
                 .setColor('#24F62B')
-                .addField('Winner', winner.user.username + '#' + winner.user.discriminator)
-                .addField('Reward', "Your waifu stats have been increased.");
+                .addField('Winner', winner.username + '#' + winner.discriminator)
+                .addField('Reward', "Your waifu stats have been increased.")
 
 
             user.combatsWon += 1;
             user.waifu = waifuManager.increaseWaifuStats(user.waifu).waifu;
         }
 
-        user.save();
-
+        await user.save();
         return matchResult = winResult;
 
     } else {
-        const cooldown = cooldownManager.calculateCooldown(now, cooldownHour);
-        return user.at + ", It seems you lost your last fight... now you have to wait `" + cooldown.hours + "hours " + cooldown.minutes + "minutes " + cooldown.seconds + "seconds` until you can use this command";
+        const cooldown = cooldownManager.calculateCooldown(now, cooldownHour)
+        return user.at + ", It seems you lost your last fight... now you have to wait `" + cooldown.hours + "hours " + cooldown.minutes + "minutes " + cooldown.seconds + "seconds` until you can use this command"
     }
 }
 
@@ -69,17 +65,17 @@ const decideWinner = (winRates) => {
         const userWithPriority = winRates.userWithPriority;
 
         if (randomWinNumber >= 0 && randomWinNumber <= userWithPriority.userWinRate) {
-            winner = userWithPriority;
+            winner = userWithPriority.user
         } else {
-            winner = winRates.userWithOutPriority;
+            winner = winRates.userWithOutPriority.user
         }
 
     } else {
 
         if (randomWinNumber >= 0 && randomWinNumber <= 50) {
-            winner = userWithPriority;
+            winner =  winRates.userOne.user
         } else {
-            winner = winRates.userWithOutPriority;
+            winner = winRates.userTwo.user
         }
     }
 
@@ -91,11 +87,11 @@ const calculateUsersWinRate = (user, challengedUser) => {
 
     const userPoints = (user.waifu.attack * attackPoints) +
         (user.waifu.defense * defensePoints) +
-        (user.waifu.health * healthPoints);
+        (user.waifu.health * healthPoints)
 
     const challengedUserPoints = (challengedUser.waifu.attack * attackPoints) +
         (challengedUser.waifu.defense * defensePoints) +
-        (challengedUser.waifu.health * healthPoints);
+        (challengedUser.waifu.health * healthPoints)
 
     const priority = getPriority(user, userPoints, challengedUser, challengedUserPoints)
 
@@ -123,8 +119,12 @@ const calculateUsersWinRate = (user, challengedUser) => {
         }
     } else {
         return winRates = {
-            userWinRate: 50,
-            challengedUserWinRate: 50,
+            userOne: {
+                user: user
+            },
+            userTwo: {
+                user: challengedUser
+            },
         }
     }
 }
@@ -144,9 +144,9 @@ const getPriority = (user, userPoints, challengedUser, challengedUserPoints) => 
         }
     }
     else
-        return 0;
+        return 0
 }
 
 module.exports = {
-    startFight: startFight,
+    startFight,
 }

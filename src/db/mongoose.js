@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
-const isRemote = false;
 
-mongoose.connect(process.env.MONGODB_URL, {
+mongoose.connect('mongodb://localhost:27017/waifu-battle', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false
