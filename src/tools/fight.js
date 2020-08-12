@@ -1,3 +1,5 @@
+const Storage = require('../models/storage')
+
 const cooldownManager = require('./cooldown');
 const waifuManager = require('./waifu');
 
@@ -31,16 +33,16 @@ const startFight = async (user, challengedUser) => {
             user.fightCooldown = newFightCooldown;
 
         } else {
+            const moneyReceived = await receiveMoney(user)
+            user.combatsWon += 1;
 
             winResult = new Discord.RichEmbed()
                 .setTitle('Match result')
                 .setColor('#24F62B')
                 .addField('Winner', winner.username + '#' + winner.discriminator)
-                .addField('Reward', "Your waifu stats have been increased.")
+                .addField('Reward', `You have received ${moneyReceived}$.`)
 
-
-            user.combatsWon += 1;
-            user.waifu = waifuManager.increaseWaifuStats(user.waifu).waifu;
+ 
         }
 
         await user.save();
@@ -49,6 +51,35 @@ const startFight = async (user, challengedUser) => {
     } else {
         const cooldown = cooldownManager.calculateCooldown(now, cooldownHour)
         return user.at + ", It seems you lost your last fight... now you have to wait `" + cooldown.hours + "hours " + cooldown.minutes + "minutes " + cooldown.seconds + "seconds` until you can use this command"
+    }
+}
+
+const receiveMoney = async (user) => {
+
+    try {
+        const storage = await Storage.findOne({
+            owner: user._id
+        })
+        const money = 200
+
+        if (storage) {
+            storage.money = money
+
+            await storage.save()
+
+        } else {
+            const newStorage = new Storage({
+                owner: userExists._id
+            })
+            newStorage.money = money
+            await newStorage.save()
+        }
+
+        return money
+
+    } catch (e) {
+        console.log(e)
+        return 0
     }
 }
 
@@ -71,7 +102,7 @@ const decideWinner = (winRates) => {
     } else {
 
         if (randomWinNumber >= 0 && randomWinNumber <= 50) {
-            winner =  winRates.userOne.user
+            winner = winRates.userOne.user
         } else {
             winner = winRates.userTwo.user
         }

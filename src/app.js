@@ -2,7 +2,16 @@
 require('./db/mongoose')
 
 //Tools
-const { commandCreate, commandWaifu, commandTrain, commandFight, commandHelp } = require('./tools/commands')
+const { commandCreate,
+    commandWaifu,
+    commandTrain,
+    commandFight,
+    commandIsekai,
+    commandAdventure,
+    commandStore,
+    commandStorage,
+    commandBuy,
+    commandHelp } = require('./tools/commands')
 
 //Packages
 const discord = require('discord.js')
@@ -38,6 +47,8 @@ client.on("message", async (receivedMessage) => {
                 at: author.toString(),
                 trainCooldown: new Date(),
                 fightCooldown: new Date(),
+                adventureCooldown: new Date(),
+                isekaiCooldown: new Date(),
                 waifu: undefined,
                 combatsWon: 0,
             }
@@ -63,6 +74,31 @@ client.on("message", async (receivedMessage) => {
                 case "fight":
                     const responseFight = await commandFight(user, message)
                     receivedMessage.channel.send(responseFight.message)
+                    break
+
+                case "isekai":
+                    const responseIsekai = await commandIsekai(user)
+                    receivedMessage.channel.send(responseIsekai.message)
+                    break
+
+                case "adventure":
+                    const responseAdventure = await commandAdventure(user)
+                    receivedMessage.channel.send(responseAdventure.message)
+                    break
+
+                case "store":
+                    const responseStore = await commandStore(user)
+                    receivedMessage.channel.send(responseStore.message)
+                    break
+
+                case "storage":
+                    const responseStorage = await commandStorage(user)
+                    receivedMessage.channel.send(responseStorage.message)
+                    break
+
+                case "buy":
+                    const responseBuy = await commandBuy(user, message)
+                    receivedMessage.channel.send(responseBuy.message.message)
                     break
 
                 case "help":

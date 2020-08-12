@@ -29,6 +29,14 @@ const userSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
+    adventureCooldown: {
+        type: Date,
+        required: true,
+    },
+    isekaiCooldown: {
+        type: Date,
+        required: true,
+    },
     combatsWon: {
         type: Number,
         required: true,
