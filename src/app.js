@@ -98,7 +98,7 @@ client.on("message", async (receivedMessage) => {
 
                 case "buy":
                     const responseBuy = await commandBuy(user, message)
-                    receivedMessage.channel.send(responseBuy.message.message)
+                    receivedMessage.channel.send(responseBuy.message)
                     break
 
                 case "help":

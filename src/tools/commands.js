@@ -274,7 +274,8 @@ const commandAdventure = async (user) => {
                     const newStorage = new Storage({
                         owner: userExists._id
                     })
-                    storage.money += adventure.money
+                    newStorage.money += adventure.money
+                    console.log(newStorage.money)
                     await newStorage.save()
                 }
 
@@ -358,7 +359,7 @@ const commandBuy = async (user, message) => {
             await userResponse.user.save()
 
         } else {
-            response.message = `${user.at}, buying syntax!`
+            response.message = `${user.at}, you need to write a valid item from the store!`
         }
 
     } else {
@@ -463,7 +464,7 @@ const userExists = async (user) => {
 }
 
 const buyFromStore = async (user, itemPrice, message) => {
-    const response = {}
+    let messageToSend = ""
 
     const storage = await Storage.findOne({
         owner: user._id
@@ -473,10 +474,10 @@ const buyFromStore = async (user, itemPrice, message) => {
         const currentMoney = storage.money
 
         if (currentMoney < itemPrice) {
-            response.message = `${user.at}, you don't have enough money`
+            messageToSend = `${user.at}, you don't have enough money`
         } else {
             storage.money -= itemPrice
-            response.message = message
+            messageToSend = message
         }
 
         await storage.save()
@@ -487,10 +488,10 @@ const buyFromStore = async (user, itemPrice, message) => {
         })
 
         await newStorage.save()
-        response.message = `${user.at}, you don't have enough money`
+        messageToSend = `${user.at}, you don't have enough money`
     }
 
-    return response
+    return messageToSend
 }
 
 const formatItemsFromStorage = (listItems) => {
