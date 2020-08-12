@@ -272,7 +272,7 @@ const commandAdventure = async (user) => {
 
                 } else {
                     const newStorage = new Storage({
-                        owner: userExist._id
+                        owner: userExists._id
                     })
                     storage.money += adventure.money
                     await newStorage.save()
