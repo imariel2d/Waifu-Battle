@@ -275,7 +275,6 @@ const commandAdventure = async (user) => {
                         owner: userExists._id
                     })
                     newStorage.money += adventure.money
-                    console.log(newStorage.money)
                     await newStorage.save()
                 }
 
