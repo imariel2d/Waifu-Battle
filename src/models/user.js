@@ -29,6 +29,11 @@ const userSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
+    availableFights: {
+        type: Number,
+        default: 5,
+        required: true,
+    },
     adventureCooldown: {
         type: Date,
         required: true,

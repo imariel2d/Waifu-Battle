@@ -15,6 +15,10 @@ const startFight = async (user, challengedUser) => {
     const cooldownHour = user.fightCooldown;
 
     if (cooldownHour <= now) {
+
+        if (user.availableFights <= 0) user.availableFights = 5
+
+
         const winRates = calculateUsersWinRate(user, challengedUser)
         const winner = decideWinner(winRates)
 
@@ -22,27 +26,38 @@ const startFight = async (user, challengedUser) => {
 
         //If the person who sent the fight request lost...
         if (user.discordId !== winner.discordId) {
+            const money = 500
+
+            const moneyReceived = await receiveMoney(winner, money)
+            const moneyTaken = await receiveMoney(user, -money)
+            
+            user.availableFights = 0
 
             winResult = new Discord.RichEmbed()
                 .setTitle('Match result')
                 .setColor('#F12C2C')
                 .addField('Winner', winner.username + '#' + winner.discriminator)
-
-            //Set up time here
-            const newFightCooldown = now.setMinutes(now.getMinutes() + 30)
-            user.fightCooldown = newFightCooldown;
+                .addField('Reward', `${winner.username} has received ${moneyReceived}$.`)
+                .addField(`${user.username} available fights`, `${user.availableFights}`)
+                .addField(`${user.username} money`, `${moneyTaken}$`)
 
         } else {
-            const moneyReceived = await receiveMoney(user)
+            const moneyReceived = await receiveMoney(user, 200)
             user.combatsWon += 1;
+            user.availableFights--
 
             winResult = new Discord.RichEmbed()
                 .setTitle('Match result')
                 .setColor('#24F62B')
                 .addField('Winner', winner.username + '#' + winner.discriminator)
                 .addField('Reward', `You have received ${moneyReceived}$.`)
+                .addField(`${user.username} available fights`, `${user.availableFights}`)
 
- 
+        }
+
+        if (user.availableFights <= 0) {
+            const newFightCooldown = now.setMinutes(now.getMinutes() + 30)
+            user.fightCooldown = newFightCooldown;
         }
 
         await user.save();
@@ -50,17 +65,16 @@ const startFight = async (user, challengedUser) => {
 
     } else {
         const cooldown = cooldownManager.calculateCooldown(now, cooldownHour)
-        return user.at + ", It seems you lost your last fight... now you have to wait `" + cooldown.hours + "hours " + cooldown.minutes + "minutes " + cooldown.seconds + "seconds` until you can use this command"
+        return user.at + ", You have to wait `" + cooldown.hours + "hours " + cooldown.minutes + "minutes " + cooldown.seconds + "seconds` until you can use this command"
     }
 }
 
-const receiveMoney = async (user) => {
+const receiveMoney = async (user, money) => {
 
     try {
         const storage = await Storage.findOne({
             owner: user._id
         })
-        const money = 200
 
         if (storage) {
             storage.money += money

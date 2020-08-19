@@ -2,6 +2,7 @@ const User = require('../models/user')
 const Storage = require('../models/storage.js')
 
 const discord = require('discord.js')
+const { Emoji } = require('discord.js')
 const mongoose = require('mongoose')
 
 const { createWaifu, increaseWaifuStats } = require('./waifu')
@@ -9,7 +10,6 @@ const { startFight } = require('./fight')
 const { calculateCooldown } = require('./cooldown');
 const { getRandromDrop } = require('./drops')
 const { goAdventure } = require('./adventure')
-const { update } = require('../models/user')
 
 const prefix = "!wb"
 
@@ -48,7 +48,13 @@ const commandWaifu = async (user) => {
 
     try {
         const discordId = user.discordId
-        const userExists = await User.findOne({ discordId })
+        const userExists = await User.findOneAndUpdate({
+            discordId
+        },
+            {
+                username: user.username,
+                discriminator: user.discriminator
+            })
 
         if (userExists) {
             response.message = new discord.RichEmbed()
@@ -78,7 +84,13 @@ const commandTrain = async (user) => {
 
     try {
         const discordId = user.discordId
-        const userExists = await User.findOne({ discordId })
+        const userExists = await User.findOneAndUpdate({
+            discordId
+        },
+            {
+                username: user.username,
+                discriminator: user.discriminator
+            })
 
         if (userExists) {
 
@@ -130,7 +142,13 @@ const commandFight = async (user, message) => {
 
     try {
         const discordId = user.discordId
-        const userExists = await User.findOne({ discordId })
+        const userExists = await User.findOneAndUpdate({
+            discordId
+        },
+            {
+                username: user.username,
+                discriminator: user.discriminator
+            })
 
         if (userExists) {
 
@@ -173,7 +191,13 @@ const commandIsekai = async (user) => {
 
     try {
         const discordId = user.discordId
-        const userExists = await User.findOne({ discordId })
+        const userExists = await User.findOneAndUpdate({
+            discordId
+        },
+            {
+                username: user.username,
+                discriminator: user.discriminator
+            })
 
         if (userExists) {
             const now = new Date()
@@ -248,7 +272,13 @@ const commandAdventure = async (user) => {
 
     try {
         const discordId = user.discordId
-        const userExists = await User.findOne({ discordId })
+        const userExists = await User.findOneAndUpdate({
+            discordId
+        },
+            {
+                username: user.username,
+                discriminator: user.discriminator
+            })
 
         if (userExists) {
 
@@ -412,6 +442,32 @@ const commandStorage = async (user, message) => {
     return response
 }
 
+const commandTimer = async (user) => {
+
+    const response = {}
+    const userResponse = await userExists(user)
+
+    if (userResponse.user) {
+
+        const now = new Date()
+
+        response.message = new discord.RichEmbed()
+            .setTitle('Cooldowns')
+            .setColor('#21E6EC')
+            .addField('Adventure', cooldownTimeMessage(userResponse.user.adventureCooldown))
+            .addField('Train', cooldownTimeMessage(userResponse.user.trainCooldown))
+            .addField('Isekai', cooldownTimeMessage(userResponse.user.isekaiCooldown))
+            .addField('Fight', cooldownTimeMessage(userResponse.user.fightCooldown))
+
+
+    } else {
+        response.message = userResponse.message
+
+    }
+
+    return response
+}
+
 const commandHelp = async (user) => {
 
     const discordId = user.discordId
@@ -428,6 +484,7 @@ const commandHelp = async (user) => {
         .addField('Fight', "`" + prefix + " fight @someone` Starts a fight with a waifu owner.")
         .addField('Help', "`" + prefix + " help` Sends a list of all commands.")
         .addField('Isekai', "`" + prefix + " isekai` Sends you and your waifu into a new world and find something cool.")
+        .addField('Timer', "`" + prefix + " timer` Shows all your cooldown timers.")
         .addField('Train', "`" + prefix + " train` Increases your waifu stats.")
         .addField('Storage', "`" + prefix + " storage` displays all of your items and money.")
         .addField('Store', "`" + prefix + " store` displays all items you can buy from the store.")
@@ -435,7 +492,6 @@ const commandHelp = async (user) => {
 
     return embedInfo
 }
-
 
 /* Validation */
 const userExists = async (user) => {
@@ -508,6 +564,21 @@ const formatItemsFromStorage = (listItems) => {
 }
 
 /*Messages */
+const cooldownTimeMessage = (timer) => {
+
+    const now = new Date()
+
+    if (timer <= now) {
+        return `:white_check_mark:`
+
+    } else {
+        const cooldown = calculateCooldown(now, timer)
+        return "`" + cooldown.hours + "hours " + cooldown.minutes + "minutes " + cooldown.seconds + "seconds`"
+    }
+
+
+}
+
 const youNeedAWaifu = (user) => {
     return user.at + " You need to create a waifu to use this command. Use `!wb create` to create your waifu"
 }
@@ -526,5 +597,6 @@ module.exports = {
     commandStore,
     commandBuy,
     commandStorage,
+    commandTimer,
     commandHelp,
 }

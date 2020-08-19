@@ -11,6 +11,7 @@ const { commandCreate,
     commandStore,
     commandStorage,
     commandBuy,
+    commandTimer,
     commandHelp } = require('./tools/commands')
 
 //Packages
@@ -99,6 +100,11 @@ client.on("message", async (receivedMessage) => {
                 case "buy":
                     const responseBuy = await commandBuy(user, message)
                     receivedMessage.channel.send(responseBuy.message)
+                    break
+
+                case "timer":
+                    const responseTimer = await commandTimer(user)
+                    receivedMessage.channel.send(responseTimer.message)
                     break
 
                 case "help":
