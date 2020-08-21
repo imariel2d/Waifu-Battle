@@ -82,7 +82,7 @@ const receiveMoney = async (user, money) => {
 
         } else {
             const newStorage = new Storage({
-                owner: userExists._id
+                owner: user._id
             })
             newStorage.money += money
             await newStorage.save()
