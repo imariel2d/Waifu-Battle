@@ -1,5 +1,4 @@
-const cooldownManager = require('../tools/cooldown')
-const waifuManager = require('../tools/waifu')
+const { youNeedAWaifu } = require('../tools/messages')
 
 const mongoose = require('mongoose')
 
@@ -55,6 +54,56 @@ const userSchema = new mongoose.Schema({
     },
 })
 
+const userExists = async (user) => {
+    const response = {}
+
+    try {
+        const discordId = user.discordId
+        const userExists = await User.findOneAndUpdate({ discordId }, { username: user.username, discriminator: user.discriminator })
+
+        if (userExists) {
+            response.user = userExists
+
+        } else {
+            response.message = youNeedAWaifu(user)
+
+        }
+
+    } catch (e) {
+        console.log(e)
+        response.message = `There's been an error, please try again later`
+    }
+
+    return response
+}
+
+const userExistsById = async (id) => {
+    const response = {}
+
+    try {
+        const discordId = id
+        const userExists = await User.findOne({ discordId })
+
+        if (userExists) {
+            response.user = userExists
+
+        } else {
+            response.message = `that user does not exist or doesn't have a waifu!`
+
+        }
+
+    } catch (e) {
+        console.log(e)
+        response.message = `There's been an error, please try again later`
+    }
+
+    return response
+}
+
 const User = mongoose.model("User", userSchema)
 
-module.exports = User
+module.exports = {
+    User,
+    userExists,
+    userExistsById
+}

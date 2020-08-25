@@ -12,13 +12,13 @@ const { commandCreate,
     commandStorage,
     commandBuy,
     commandTimer,
-    commandHelp } = require('./tools/commands')
+    commandHelp, 
+    commandEquip} = require('./tools/commands')
 
 //Packages
 const discord = require('discord.js')
 
 //General config
-const { response } = require('express')
 const client = new discord.Client()
 const prefix = "!wb"
 
@@ -33,12 +33,12 @@ client.on("message", async (receivedMessage) => {
         return
     }
 
-    if (receivedMessage.content.startsWith(prefix)) {
+    if (receivedMessage.content.toLowerCase().startsWith(prefix)) {
 
         const message = receivedMessage.content.split(" ")
 
         if (message.length > 1) {
-            const command = message[1]
+            const command = message[1].toLowerCase()
             const author = receivedMessage.author
 
             const user = {
@@ -63,7 +63,7 @@ client.on("message", async (receivedMessage) => {
                     break
 
                 case "waifu":
-                    const responseWaifu = await commandWaifu(user)
+                    const responseWaifu = await commandWaifu(user, message)
                     receivedMessage.channel.send(responseWaifu.message)
                     break
 
@@ -107,8 +107,13 @@ client.on("message", async (receivedMessage) => {
                     receivedMessage.channel.send(responseTimer.message)
                     break
 
+                // case "equip":
+                //     const responseEquip = await commandEquip(user, message) 
+                //     receivedMessage.channel.send(responseEquip.message)
+                //     break
+
                 case "help":
-                    response = await commandHelp(user)
+                    response = await commandHelp()
                     receivedMessage.channel.send(response)
                     break
 

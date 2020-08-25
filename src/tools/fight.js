@@ -1,8 +1,7 @@
-const Storage = require('../models/storage')
+const { Storage } = require('../models/storage')
+const { Waifu } = require('../models/waifu')
 
 const cooldownManager = require('./cooldown');
-const waifuManager = require('./waifu');
-
 const Discord = require('discord.js');
 
 const attackPoints = 1;
@@ -19,7 +18,7 @@ const startFight = async (user, challengedUser) => {
         if (user.availableFights <= 0) user.availableFights = 5
 
 
-        const winRates = calculateUsersWinRate(user, challengedUser)
+        const winRates = await calculateUsersWinRate(user, challengedUser)
         const winner = decideWinner(winRates)
 
         let winResult = {};
@@ -30,7 +29,7 @@ const startFight = async (user, challengedUser) => {
 
             const moneyReceived = await receiveMoney(winner, money)
             const moneyTaken = await receiveMoney(user, -money)
-            
+
             user.availableFights = 0
 
             winResult = new Discord.RichEmbed()
@@ -125,49 +124,62 @@ const decideWinner = (winRates) => {
 
 }
 
-const calculateUsersWinRate = (user, challengedUser) => {
+const calculateUsersWinRate = async (user, challengedUser) => {
 
-    const userPoints = (user.waifu.attack * attackPoints) +
-        (user.waifu.defense * defensePoints) +
-        (user.waifu.health * healthPoints)
+    try {
+        const userWaifu = await Waifu.findOne({
+            master: user._id
+        })
 
-    const challengedUserPoints = (challengedUser.waifu.attack * attackPoints) +
-        (challengedUser.waifu.defense * defensePoints) +
-        (challengedUser.waifu.health * healthPoints)
+        const challengedUserWaifu = await Waifu.findOne({
+            master: challengedUser._id
+        })
 
-    const priority = getPriority(user, userPoints, challengedUser, challengedUserPoints)
+        const userPoints = (userWaifu.attack * attackPoints) +
+            (userWaifu.defense * defensePoints) +
+            (userWaifu.health * healthPoints)
 
-    if (priority.userPriority === user) {
-        return winRates = {
-            userWithPriority: {
-                user: user,
-                userWinRate: 50 + priority.priority
-            },
-            userWithOutPriority: {
-                user: challengedUser,
-                challengedUserWinRate: 50 - priority.priority,
-            },
+        const challengedUserPoints = (challengedUserWaifu.attack * attackPoints) +
+            (challengedUserWaifu.defense * defensePoints) +
+            (challengedUserWaifu.health * healthPoints)
+
+        const priority = getPriority(user, userPoints, challengedUser, challengedUserPoints)
+
+        if (priority.userPriority === user) {
+            return winRates = {
+                userWithPriority: {
+                    user: user,
+                    userWinRate: 50 + priority.priority
+                },
+                userWithOutPriority: {
+                    user: challengedUser,
+                    challengedUserWinRate: 50 - priority.priority,
+                },
+            }
+        } else if (priority.userPriority === challengedUser) {
+            return winRates = {
+                userWithPriority: {
+                    user: challengedUser,
+                    userWinRate: 50 + priority.priority
+                },
+                userWithOutPriority: {
+                    user: user,
+                    challengedUserWinRate: 50 - priority.priority,
+                },
+            }
+        } else {
+            return winRates = {
+                userOne: {
+                    user: user
+                },
+                userTwo: {
+                    user: challengedUser
+                },
+            }
         }
-    } else if (priority.userPriority === challengedUser) {
-        return winRates = {
-            userWithPriority: {
-                user: challengedUser,
-                userWinRate: 50 + priority.priority
-            },
-            userWithOutPriority: {
-                user: user,
-                challengedUserWinRate: 50 - priority.priority,
-            },
-        }
-    } else {
-        return winRates = {
-            userOne: {
-                user: user
-            },
-            userTwo: {
-                user: challengedUser
-            },
-        }
+    } catch (e) {
+        console.log(e)
+
     }
 }
 
