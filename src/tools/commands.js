@@ -202,7 +202,7 @@ const commandIsekai = async (user) => {
                 await storage.save()
                 response.message = `${user.at}, you and your waifu have fell into a new world and found ${randomDrop.name}`
 
-                foundUser.isekaiCooldown = now.setMinutes(now.getMinutes() + 0)
+                foundUser.isekaiCooldown = now.setMinutes(now.getMinutes() + 30)
                 await foundUser.save()
 
             } else {
