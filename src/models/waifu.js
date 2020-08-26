@@ -87,7 +87,7 @@ const increaseWaifuStats = async (user) => {
     let messageResponse = undefined;
     let statMessage = undefined;
     let waifuReponse = undefined
-    
+
     try {
         const waifu = await Waifu.findOne({
             master: user._id
@@ -128,17 +128,32 @@ const equipWaifu = async (user, storage, item) => {
     let response = ""
 
     try {
+        const waifu = await Waifu.findOne({
+            master: user._id
+        })
+
+        if (waifu.weapon) {
+            response = `${user.at}, Your waifu has a weapon equiped!`
+            return response
+        }
+
         if (item.type === 'sword' && !item.equiped) {
+            waifu.weapon = item
             item.equiped = true
+
+            await waifu.save()
             response = `${user.at}, You waifu has equiped ${item.name}!`
+
+            const newEquipments = storage.waifuEquipments.filter((equipment) => equipment.name !== item.name)
+
+            storage.waifuEquipments = newEquipments
+            await storage.save()
 
         } else {
             response = `${user.at}, You cannot equip that!`
 
         }
 
-        await user.save()
-        await storage.save()
 
     } catch (e) {
         console.log(e)
@@ -148,11 +163,25 @@ const equipWaifu = async (user, storage, item) => {
     return response
 }
 
+const formatEquipment = (equipment) => {
+    let message = ""
+
+    if (!equipment) {
+        message = `Nothing equipped`
+
+    } else {
+        message = `${equipment.name} (Attack +${equipment.bonusStats.attack} / Defense +${equipment.bonusStats.defense} / Health +${equipment.bonusStats.health})`
+    }
+
+    return message
+}
+
 const Waifu = mongoose.model('Waifu', waifuSchema)
 
 module.exports = {
     Waifu,
     getWaifuName,
     increaseWaifuStats,
-    equipWaifu
+    equipWaifu,
+    formatEquipment
 };

@@ -5,7 +5,10 @@ const prices = {
     defense: 3500,
     health: 2000,
     sword: {
-        price: 1,
+        price: 1000,
+    },
+    armor: {
+        price: 1000
     }
 }
 
@@ -21,10 +24,45 @@ const items = [
         },
         requiredObjects: [{
             name: 'Iron',
-            amount: 1,
+            amount: 15,
         }, {
             name: 'Coal',
-            amount: 1,
+            amount: 15,
+
+        }, {
+            name: 'Diamond',
+            amount: 3
+        }, {
+            name: 'Ruby',
+            amount: 1
+        }]
+    },
+
+    {
+        name: 'armor',
+        type: 'armor',
+        price: prices.armor.price,
+        bonusStats: {
+            attack: 0,
+            defense: 20,
+            health: 25,
+        },
+        requiredObjects: [{
+            name: 'Iron',
+            amount: 20,
+        }, {
+            name: 'Coal',
+            amount: 20,
+
+        }, {
+            name: 'Gold',
+            amount: 5
+        }, {
+            name: 'Diamond',
+            amount: 3
+        }, {
+            name: 'Emerald',
+            amount: 1
         }]
     }
 ]
@@ -94,7 +132,7 @@ const canUserBuyItem = async (user, item) => {
                         }
                     }
 
-                    const equipment = { 
+                    const equipment = {
                         ...foundItem,
                         equiped: false,
                     }
@@ -124,8 +162,82 @@ const canUserBuyItem = async (user, item) => {
     return response
 }
 
+const sellItems = async (user, itemName, quantity) => {
+
+    let message = ""
+    const storageResponse = await getStorage(user)
+
+    if (!storageResponse.error) {
+        const storage = storageResponse.storage
+        const foundItem = storage.items.find((tempItem) => tempItem.name.toLowerCase() === itemName.toLowerCase())
+
+        if (foundItem) {
+
+            if (quantity <= foundItem.count) {
+                const money = (foundItem.price * quantity)
+                const newItem = {
+                    ...foundItem,
+                    count: foundItem.count - quantity
+                }
+                
+                for(let i = 0; i < storage.items.length; i++) {
+                    if (storage.items[i].name.toLowerCase() === itemName.toLowerCase()){
+                        storage.items.splice(i, 1)
+                    }
+                }
+                
+                storage.money += money
+                storage.items.push(newItem)
+                await storage.save()
+
+                message = `${user.at}. you have received ${money}$!`
+                
+            } else {
+                message = `${user.at}. you dont have that much ${itemName}!`
+
+            }
+  
+        } else {
+            message = `${user.at}. You don't own that item!`
+            
+        }
+
+
+    } else {
+        message = `${user.at}. there's been a problem, try again later!`
+
+    }
+
+    return message
+}
+
+const formatRequiredObjects = (requirementsList) => {
+
+    let message = ""
+
+    if (requirementsList.length <= 0) {
+        message = `No item requirement`
+
+    } else {
+
+        requirementsList.forEach((item) => {
+            message += `${item.name} x${item.amount} \n`
+        })
+    }
+
+    return message
+}
+
+const formatStats = (stats) => {
+    return `(Attack +${stats.attack} / Defense +${stats.defense} / Health +${stats.health})`
+}
+
 module.exports = {
     prices,
+    items,
     buyFromStore,
-    canUserBuyItem
+    canUserBuyItem,
+    formatRequiredObjects,
+    formatStats,
+    sellItems
 }

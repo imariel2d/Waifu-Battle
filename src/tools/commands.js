@@ -1,5 +1,5 @@
 const { User, userExists, userExistsById } = require('../models/user')
-const { Waifu, getWaifuName, increaseWaifuStats, equipWaifu } = require('../models/waifu')
+const { Waifu, getWaifuName, increaseWaifuStats, equipWaifu, formatEquipment } = require('../models/waifu')
 const { getStorage, formatItemsFromStorage, formatEquipmentsFromStrorage } = require('../models/storage.js')
 
 const discord = require('discord.js')
@@ -8,7 +8,7 @@ const { startFight } = require('./fight')
 const { calculateCooldown } = require('./cooldown');
 const { getRandromDrop } = require('./drops')
 const { goAdventure } = require('./adventure')
-const { buyFromStore, canUserBuyItem, prices } = require('./store')
+const { buyFromStore, canUserBuyItem, prices, items, formatRequiredObjects, formatStats, sellItems } = require('./store')
 const { cooldownTimeMessage, fightSyntax } = require('./messages')
 
 const prefix = "!wb"
@@ -59,9 +59,9 @@ const commandWaifu = async (user, message) => {
             const foundOtherUser = response.user
 
             if (foundOtherUser) {
-                const waifu = await Waifu.findOne({ 
-                    master: foundOtherUser._id 
-                }) 
+                const waifu = await Waifu.findOne({
+                    master: foundOtherUser._id
+                })
 
                 //someone else's waifu
                 response.message = new discord.RichEmbed()
@@ -72,15 +72,17 @@ const commandWaifu = async (user, message) => {
                     .addField('Defense', waifu.defense)
                     .addField('Health', waifu.health)
                     .addField('Combats won', foundOtherUser.combatsWon)
+                    // .addField('Weapon', `${formatEquipment(waifu.weapon)}`)
+                    // .addField('Armor', `${formatEquipment(waifu.armor)}`)
 
             } else {
                 response.message = `${user.at}, that user does not exist (or) does not have a waifu!`
             }
 
         } else {
-            const waifu = await Waifu.findOne({ 
-                master: foundUser._id 
-            })    
+            const waifu = await Waifu.findOne({
+                master: foundUser._id
+            })
 
             //My waifu
             response.message = new discord.RichEmbed()
@@ -91,6 +93,8 @@ const commandWaifu = async (user, message) => {
                 .addField('Defense', waifu.defense)
                 .addField('Health', waifu.health)
                 .addField('Combats won', foundUser.combatsWon)
+                // .addField('Weapon', `${formatEquipment(waifu.weapon)}`)
+                // .addField('Armor', `${formatEquipment(waifu.armor)}`)
         }
     }
 
@@ -111,7 +115,7 @@ const commandTrain = async (user) => {
             //Get information with the waifu
             const waifuResponse = await increaseWaifuStats(foundUser)
             response.message = waifuResponse.message
-            
+
             const newTrainingCooldown = now.setMinutes(now.getMinutes() + 30)
             foundUser.trainCooldown = newTrainingCooldown
 
@@ -354,12 +358,13 @@ const commandStore = async (user) => {
         const embedInfo = new discord.RichEmbed()
             .setTitle('Store')
             .setColor('#EAFF50')
+            // .addField('Sword', `${items[0].price}$\n ${formatRequiredObjects(items[0].requiredObjects)} ${formatStats(items[0].bonusStats)}`)
+            // .addField('Armor', `${items[1].price}$\n ${formatRequiredObjects(items[1].requiredObjects)} ${formatStats(items[1].bonusStats)}`)
             .addField('Attack (1 point)', `${prices.attack}$`)
             .addField('Defense (1 point)', `${prices.defense}$`)
             .addField('Health (1 point)', `${prices.health}$`)
 
         response.message = embedInfo
-
     }
 
     return response
@@ -375,36 +380,42 @@ const commandBuy = async (user, message) => {
         const waifu = await Waifu.findOne({
             master: foundUser._id
         })
-    
+
 
         if (message.length > 2) {
             const purschasable = message[2]
 
             switch (purschasable.toLowerCase()) {
                 case 'attack':
-                    waifu.attack += 1
-
                     const messageAttack = `${user.at}, you have bought 1 point of attack for you waifu`
                     response.message = await buyFromStore(foundUser, prices.attack, messageAttack)
+
+                    waifu.attack += 1
                     break
 
                 case 'defense':
-                    waifu.defense += 1
-
                     const messageDefense = `${user.at}, you have bought 1 point of defense for you waifu`
                     response.message = await buyFromStore(foundUser, prices.defense, messageDefense)
+
+                    waifu.defense += 1
                     break
 
                 case 'health':
-                    waifu.health += 1
-
                     const messageHealth = `${user.at}, you have bought 1 point of health for you waifu`
                     response.message = await buyFromStore(foundUser, prices.health, messageHealth)
+
+                    waifu.health += 1
                     break
 
                 // case 'sword':
-                //     const buyItem = await canUserBuyItem(foundUser, 'sword')
-                //     response.message = buyItem.message
+                //     const buySword = await canUserBuyItem(foundUser, 'sword')
+                //     response.message = buySword.message
+                //     break
+
+
+                // case 'armor':
+                //     const buyArmor = await canUserBuyItem(foundUser, 'armor')
+                //     response.message = buyArmor.message
                 //     break
 
                 default:
@@ -416,6 +427,37 @@ const commandBuy = async (user, message) => {
         } else {
             response.message = `${user.at}, you need to write a valid item from the store!`
         }
+    }
+
+    return response
+}
+
+const commandSell = async (user, message) => {
+
+    const response = await userExists(user)
+    const foundUser = response.user
+
+    if (foundUser) {
+        response.message = `${user.at} ooga booga`
+
+        if (message.length > 2) {
+
+            const itemAndQuantity = message[2].split('-')
+            const item = itemAndQuantity[0]
+            const quantity = itemAndQuantity[1]
+
+            if (item && Number.isInteger(parseInt(quantity))) {
+                response.message = await sellItems(foundUser, item, quantity)
+
+            } else {
+                response.message = user.at + ", you have to specify an object and quantity (example: `!wb sell coal-10`)"
+            }
+
+
+        } else {
+            response.message = user.at + ", you have to specify an object and quantity (example: `!wb sell coal-10`)"
+        }
+
     }
 
     return response
@@ -434,6 +476,7 @@ const commandHelp = async (user) => {
         .addField('Isekai', "`" + prefix + " isekai` Sends you and your waifu into a new world and find something cool.")
         .addField('Timer', "`" + prefix + " timer` Shows all your cooldown timers.")
         .addField('Train', "`" + prefix + " train` Increases your waifu stats.")
+        .addField('Sell', "`" + prefix + " sell` sells the items from your storage.")
         .addField('Storage', "`" + prefix + " storage` displays all of your items and money.")
         .addField('Store', "`" + prefix + " store` displays all items you can buy from the store.")
         .addField('Waifu', "`" + prefix + " waifu` Displays your waifu information.")
@@ -453,5 +496,6 @@ module.exports = {
     commandStorage,
     commandTimer,
     commandHelp,
-    commandEquip
+    commandEquip,
+    commandSell
 }
