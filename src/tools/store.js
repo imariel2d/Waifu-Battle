@@ -5,20 +5,20 @@ const prices = {
     defense: 3500,
     health: 2000,
     sword: {
-        price: 1000,
+        price: 5000,
     },
     armor: {
-        price: 1000
+        price: 5000
     }
 }
 
 const items = [
     {
-        name: 'sword',
-        type: 'sword',
+        name: 'Sword-Titan',
+        type: 'Sword',
         price: prices.sword.price,
         bonusStats: {
-            attack: 20,
+            attack: 25,
             defense: 5,
             health: 5,
         },
@@ -39,8 +39,33 @@ const items = [
     },
 
     {
-        name: 'armor',
-        type: 'armor',
+        name: 'Sword-Water',
+        type: 'Sword',
+        price: prices.sword.price,
+        bonusStats: {
+            attack: 30,
+            defense: 0,
+            health: 0,
+        },
+        requiredObjects: [{
+            name: 'Iron',
+            amount: 10,
+        }, {
+            name: 'Coal',
+            amount: 10,
+
+        }, {
+            name: 'Diamond',
+            amount: 5
+        }, {
+            name: 'Ruby',
+            amount: 1
+        }]
+    },
+
+    {
+        name: 'Armor-Fire',
+        type: 'Armor',
         price: prices.armor.price,
         bonusStats: {
             attack: 0,
@@ -56,13 +81,37 @@ const items = [
 
         }, {
             name: 'Gold',
-            amount: 5
+            amount: 3
         }, {
             name: 'Diamond',
-            amount: 3
+            amount: 2
         }, {
             name: 'Emerald',
             amount: 1
+        }]
+    },
+
+    {
+        name: 'Armor-Candy',
+        type: 'Armor',
+        price: prices.armor.price,
+        bonusStats: {
+            attack: 0,
+            defense: 40,
+            health: 50,
+        },
+        requiredObjects: [ {
+            name: 'Ruby',
+            amount: 5,
+        }, {
+            name: 'Gold',
+            amount: 5
+        }, {
+            name: 'Diamond',
+            amount: 5
+        }, {
+            name: 'Emerald',
+            amount: 5
         }]
     }
 ]
@@ -155,7 +204,7 @@ const canUserBuyItem = async (user, item) => {
             }
 
         } else {
-            response.message = `${user.at}, something went wrong please try again later!`
+            response.message = `${user.at}, that's not a valid item!`
         }
     }
 

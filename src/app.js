@@ -1,27 +1,27 @@
 //Data base and models
-require('./db/mongoose')
-
-//Tools
-const { commandCreate,
-    commandWaifu,
-    commandTrain,
-    commandFight,
-    commandIsekai,
-    commandAdventure,
-    commandStore,
-    commandStorage,
-    commandBuy,
-    commandTimer,
-    commandHelp,
-    commandSell, 
-    commandEquip} = require('./tools/commands')
+require("./db/mongoose")
 
 //Packages
-const discord = require('discord.js')
+const discord = require("discord.js")
 
 //General config
 const client = new discord.Client()
 const prefix = "!wb"
+
+//Commands
+const commandAdventure = require("./commands/adventure")
+const commandBuy = require("./commands/buy")
+const commandCreate = require("./commands/create")
+const commandEquip = require("./commands/equip")
+const commandFight = require("./commands/fight")
+const commandHelp = require("./commands/help")
+const commandIsekai = require("./commands/isekai")
+const commandSell = require("./commands/sell")
+const commandStorage = require("./commands/storage")
+const commandStore = require("./commands/store")
+const commandTimer = require("./commands/timer")
+const commandTrain = require("./commands/train")
+const commandWaifu = require("./commands/waifu")
 
 client.on("ready", () => {
     console.log("Connected as " + client.user.tag)
@@ -29,13 +29,11 @@ client.on("ready", () => {
 })
 
 client.on("message", async (receivedMessage) => {
-
     if (receivedMessage.author == client.user) {
         return
     }
 
     if (receivedMessage.content.toLowerCase().startsWith(prefix)) {
-
         const message = receivedMessage.content.split(" ")
 
         if (message.length > 1) {
@@ -108,10 +106,10 @@ client.on("message", async (receivedMessage) => {
                     receivedMessage.channel.send(responseTimer.message)
                     break
 
-                // case "equip":
-                //     const responseEquip = await commandEquip(user, message) 
-                //     receivedMessage.channel.send(responseEquip.message)
-                //     break
+                case "equip":
+                    const responseEquip = await commandEquip(user, message)
+                    receivedMessage.channel.send(responseEquip.message)
+                    break
 
                 case "sell":
                     const responseSell = await commandSell(user, message)
@@ -124,17 +122,20 @@ client.on("message", async (receivedMessage) => {
                     break
 
                 default:
-                    receivedMessage.channel.send("That's not a valid command, use `" + `${prefix}` + " help` to see all commands.")
+                    receivedMessage.channel.send(
+                        "That's not a valid command, use `" +
+                            `${prefix}` +
+                            " help` to see all commands."
+                    )
                     break
             }
         }
     }
 })
 
-client.login(process.env.DISCORD_API_KEY).then((result) => {
-
-}).catch((error) => {
-    console.log(error)
-})
-
-
+client
+    .login(process.env.DISCORD_API_KEY)
+    .then((result) => {})
+    .catch((error) => {
+        console.log(error)
+    })

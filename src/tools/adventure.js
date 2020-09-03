@@ -1,5 +1,4 @@
 const adventures = [
-
     {
         completed: true,
         moneyReward: 1000,

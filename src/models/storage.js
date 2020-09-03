@@ -56,11 +56,18 @@ const getStorage = async (user) => {
 const formatItemsFromStorage = (listItems) => {
     let message = ""
 
+    listItems.sort((itemOne, itemTwo) => {
+        if (itemOne.name > itemTwo.name) return 1
+        if (itemOne.name < itemTwo.name) return -1
+        return 0
+
+    })
+
     if (listItems.length <= 0) {
         message = 'You have 0 items.'
     } else {
         listItems.forEach((item) => {
-            message += ` ${item.name} x${item.count}\n`
+            message += ` ${item.name} x${item.count} ($${item.price})\n`
         })
     }
 
@@ -69,6 +76,13 @@ const formatItemsFromStorage = (listItems) => {
 
 const formatEquipmentsFromStrorage = (listEquipments) => {
     let message = ""
+
+    listEquipments.sort((itemOne, itemTwo) => {
+        if (itemOne.name > itemTwo.name) return 1
+        if (itemOne.name < itemTwo.name) return -1
+        return 0
+
+    })
 
     if (listEquipments.length <= 0) {
         message = 'You have 0 equipments.'
